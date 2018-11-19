@@ -12,6 +12,7 @@ import java.util.NoSuchElementException
 import java.util.concurrent.Executors
 import javax.xml.stream.events.Attribute
 import javax.xml.stream.{ XMLEventReader, XMLInputFactory, XMLStreamConstants, XMLStreamReader }
+import org.apache.commons.lang3.StringUtils
 import scala.concurrent.{ ExecutionContext, ExecutionContextExecutor }
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -34,6 +35,9 @@ object Main extends StreamApp[IO] {
           .filter(_.getEventType == XMLStreamConstants.CHARACTERS)
           .map(_.asCharacters.getData)
           .filter(_.contains("{{see"))
+          .flatMap { str =>
+            Stream.emits(StringUtils.substringsBetween(str, "{{see", "}}"))
+          }
           .take(10)
       }
     }

@@ -33,6 +33,7 @@ lazy val root = (project in file("."))
     ),
     libraryDependencies += "com.amazonaws" % "aws-java-sdk-dynamodb" % "1.11.292",
     libraryDependencies += "org.slf4j" % "slf4j-simple" % "1.6.1",
+    libraryDependencies += "org.apache.commons" % "commons-lang3" % "3.8.1",
     resolvers += "krasserm at bintray" at "http://dl.bintray.com/krasserm/maven",
     scalacOptions += "-Ypartial-unification"
   )
