@@ -5,5 +5,3 @@ target/
 
 .ensime
 .ensime_cache
-
-*.xml

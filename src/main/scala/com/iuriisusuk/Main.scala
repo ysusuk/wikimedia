@@ -9,33 +9,25 @@ import fs2.StreamApp.ExitCode
 import io.circe.Json
 import java.io.FileReader
 import java.nio.file.Paths
-import java.util.NoSuchElementException
-import java.util.concurrent.Executors
-import javax.xml.stream.events.Attribute
-import javax.xml.stream.{ XMLEventReader, XMLInputFactory, XMLStreamConstants, XMLStreamReader }
+import javax.xml.stream.{ XMLInputFactory, XMLStreamConstants }
 import org.apache.commons.lang3.StringUtils
-import scala.concurrent.{ ExecutionContext, ExecutionContextExecutor }
-import scala.concurrent.ExecutionContext.Implicits.global
 
 
 object Main extends StreamApp[IO] {
 
   override def stream(args: List[String], requestShutdown: IO[Unit]): Stream[IO, ExitCode] = {
 
-    case class See(name: String, lat: Option[String], long: Option[String], content: Option[String])
-    implicit val seeShow: Show[See] = Show { see => s"${see.name},${see.lat.getOrElse("None")},${see.long.getOrElse("None")},${see.content.getOrElse("None")}" }
-//    implicit val seeShorterShow: Show[See] = Show { see => s"${see.name},${see.lat.getOrElse("None")},${see.long.getOrElse("None")}" }
-    case class Do(name: String, lat: Option[String], long: Option[String], content: Option[String])
+    case class POI(name: String, lat: Option[String], long: Option[String], content: Option[String])
+    implicit val seeShow: Show[POI] = Show { poi => s"${poi.name},${poi.lat.getOrElse("None")},${poi.long.getOrElse("None")},${poi.content.getOrElse("None")}" }
 
-    val blockingExecutionContext = ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(2))
+//    case class See(name: String, lat: Option[String], long: Option[String], content: Option[String]) extends POI(name, lat, content)
+//    case class Do(name: String, lat: Option[String], long: Option[String], content: Option[String]) extends POI(name, lat, content)
 
     val xmlInputFactory: XMLInputFactory = XMLInputFactory.newInstance
     xmlInputFactory.setProperty("javax.xml.stream.isCoalescing", true)
 
     // todo: filter.map can be replaced with collect - for this to be doable, we need dsl which represents events (e.g. case class StartElement, case class EndElement)
-    // todo: {{do
-
-//    fs2.text.ut
+    // todo: path through random id and title
     Stream.force {
       IO(xmlInputFactory.createXMLEventReader(new FileReader(".//src//main//resources//enwikivoyage-20170620-pages-articles.xml"))).map { xmlEventReader =>
         Stream.repeatEval(IO(xmlEventReader.nextEvent))
@@ -46,19 +38,25 @@ object Main extends StreamApp[IO] {
           .unNone
           .filter(_.getEventType == XMLStreamConstants.CHARACTERS)
           .map(_.asCharacters.getData)
-          .filter(_.contains("{{see"))
+          .filter(str => str.contains("{{do") || str.contains("{{see"))
           .flatMap { str =>
-            (Stream.emits(StringUtils.substringsBetween(str, "{{see", "}}")).map { str =>
-              val m: Map[String, String] = str.split("\\|").filter(_.nonEmpty).map(_.trim).map { str =>
-                val fields: Array[String] = str.trim().split('=')
-                fields match {
-                  // case Array(key) => (key, None)
-                  case Array(key, value) => Some((key, value))
-                  case _ => None
-                }
-              }.flatten.toMap
-              m.get("name").map(name => See(name, m.get("lat"), m.get("long"), m.get("content")))
-            }.unNone.covary[IO])
+            def transform(str: String, categoryTag: String): Stream[IO, POI] = {
+              // StringUtils.substringsBetween returns null if no match found
+              val pois: Array[String] = Option(StringUtils.substringsBetween(str, categoryTag, "}}")).getOrElse[Array[String]](Array.empty)
+              Stream.emits(pois).map { str =>
+                val m: Map[String, String] = str.split("\\|").filter(_.nonEmpty).map(_.trim).map { str =>
+                  val fields: Array[String] = str.trim().split('=')
+                  fields match {
+                    // case Array(key) => (key, None)
+                    case Array(key, value) => Some((key, value))
+                    case _ => None
+                  }
+                }.flatten.toMap
+                m.get("name").map(name => POI(name, m.get("lat"), m.get("long"), m.get("content")))
+              }.unNone.covary[IO]
+            }
+
+           transform(str, "{{see").append(transform(str, "{{do"))
           }
       }}
       // .take(5)
