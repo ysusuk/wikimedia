@@ -1,5 +1,7 @@
 ## Run 
-sbt "runMain com.iuriisusuk.Main"
+```
+$ sbt "runMain com.iuriisusuk.Main"
+```
 
 ## Test
 ```sh
