@@ -7,3 +7,5 @@ target/
 .ensime_cache
 
 *.xml
+
+.ipynb_checkpoints

@@ -7,7 +7,7 @@ lazy val root = (project in file("."))
   .settings(
     inThisBuild(List(
       organization := "com.iuriisusuk",
-      scalaVersion := "2.11.12",
+      scalaVersion := "2.12.7",
       version      := "0.1.0"
     )),
     name := "wikimedia-listings",
@@ -20,8 +20,6 @@ lazy val root = (project in file("."))
       "co.fs2" %% "fs2-core" % "0.10.3",
       "org.http4s" %% "jawn-fs2" % "0.10.3",
       "org.spire-math" %% "jawn-ast" % "0.11.0",
-      "org.apache.spark" %% "spark-sql" % "2.2.0" % "provided",
-      "org.apache.spark" %% "spark-mllib" % "2.2.0" % "provided"
     ),
     libraryDependencies ++= Seq(
       "org.typelevel" %% "cats-core" % "1.0.1",
@@ -36,9 +34,6 @@ lazy val root = (project in file("."))
     libraryDependencies += "com.amazonaws" % "aws-java-sdk-dynamodb" % "1.11.292",
     libraryDependencies += "org.slf4j" % "slf4j-simple" % "1.6.1",
     libraryDependencies += "org.apache.commons" % "commons-lang3" % "3.8.1",
-    resolvers ++= Seq(
-      "krasserm at bintray" at "http://dl.bintray.com/krasserm/maven"
-    ),
     scalacOptions += "-Ypartial-unification"
   )
   .enablePlugins(DockerPlugin)
