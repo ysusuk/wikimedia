@@ -21,6 +21,7 @@ object QueryRecommendationApp {
       .toDF("name", "lat", "long", "content")
 
     val dataset1 = dataset.withColumn("name", split(dataset("name"), " ").cast("array<string>"))
+    // val dataset2 = dataset1.withColumn("name", collect_set(dataset1("name")))
 
     dataset1.show()
 
