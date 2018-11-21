@@ -1,12 +1,10 @@
 package com.iuriisusuk
 
 import cats.Show
-import cats.effect.{ Effect, IO }
+import cats.effect.IO
 import cats.implicits._
-import cats.syntax.either._
 import fs2.{ Sink, Stream, StreamApp }
 import fs2.StreamApp.ExitCode
-import io.circe.Json
 import java.io.FileReader
 import java.nio.file.Paths
 import javax.xml.stream.{ XMLInputFactory, XMLStreamConstants }
@@ -18,7 +16,7 @@ object Main extends StreamApp[IO] {
   override def stream(args: List[String], requestShutdown: IO[Unit]): Stream[IO, ExitCode] = {
 
     case class POI(name: String, lat: Option[String], long: Option[String], content: Option[String])
-    implicit val seeShow: Show[POI] = Show { poi => s"${poi.name},${poi.lat.getOrElse("None")},${poi.long.getOrElse("None")},${poi.content.getOrElse("None")}" }
+    implicit val poiShow: Show[POI] = Show.show { (poi: POI) => s"""${poi.name},${poi.lat.getOrElse("None")},${poi.long.getOrElse("None")},"${poi.content.getOrElse("None")}""""  }
 
 //    case class See(name: String, lat: Option[String], long: Option[String], content: Option[String]) extends POI(name, lat, content)
 //    case class Do(name: String, lat: Option[String], long: Option[String], content: Option[String]) extends POI(name, lat, content)
