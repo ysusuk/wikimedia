@@ -2,13 +2,6 @@
 ```
 $ sbt "runMain com.iuriisusuk.Main"
 ```
-```
-~/spark-2.3.1-bin-hadoop2.7/bin/spark-submit \
-  --class "com.iuriisusuk.QueryRecommendationApp" \
-  --master local \
-  target/scala-2.11/wikimedia-listings_2.11-0.1.0.jar
-```
-
 
 ## Test
 ```sh
