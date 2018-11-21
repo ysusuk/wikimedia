@@ -16,20 +16,31 @@ object QueryRecommendationApp {
 
     import spark.implicits._
 
-    val dataset = spark.read.format("csv")
-      .load("file:////Users/ysusuk/vidiq/wikimedia/pois.csv")
-      .toDF("name", "lat", "long", "content")
+    case class Init(id: String, query: String)
+    case class Init1(id: String, queries: Seq[String])
 
-    val dataset1 = dataset.withColumn("name", split(dataset("name"), " ").cast("array<string>"))
-    // val dataset2 = dataset1.withColumn("name", collect_set(dataset1("name")))
+    val dataset = spark.read.format("csv")
+      .load("file:////Users/ysusuk/vidiq/wikimedia/src/main/resources/queries.csv")
+      .toDF("id", "queries").rdd
+
+
+    val dataset1 = dataset
+      .map(r => Init(r.getString(0), r.getString(1)))
+      .groupBy(_.id)
+      .mapValues(inits => inits.map(_.query).toSet)
+      .filter(t => t._2.size > 1)
+      .toDF("id", "queries")
+    //.map(t => Init1(t._1, t._2.map(_.queries)]))
+
+    //    val dataset1 = dataset.withColumn("queries", split(dataset("queries"), " ").cast("array<string>"))
 
     dataset1.show()
 
-    val fpgrowth = new FPGrowth().setItemsCol("name").setMinSupport(0.5).setMinConfidence(0.5)
+    val fpgrowth = new FPGrowth().setItemsCol("queries").setMinSupport(0.1).setMinConfidence(0.1)
     val model = fpgrowth.fit(dataset1)
 
     // Display frequent itemsets.
-    // model.freqItemsets.show()
+    model.freqItemsets.show()
 
     // Display generated association rules.
     // model.associationRules.show()
