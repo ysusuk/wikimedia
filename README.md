@@ -1,3 +1,6 @@
+## General
+This approach doesn't support title + text events! For this to be possible events should be stacked on start / end tags.
+
 ## Run 
 ```
 $ sbt "runMain com.iuriisusuk.Main"
